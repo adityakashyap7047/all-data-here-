@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 189 94% 43%;
+    --primary-foreground: 222 47% 5%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 189 94% 43%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-notix-bg text-notix-text antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .animate-in {
+    animation: fade-in 0.3s ease-out, slide-up 0.5s ease-out;
+  }
+  .glass {
+    @apply bg-notix-surface/80 backdrop-blur-lg border border-white/10;
+  }
+  .glass-hover {
+    @apply glass hover:bg-notix-surfaceHover/90 transition-all duration-300;
+  }
+  .gradient-text {
+    @apply bg-gradient-to-r from-notix-accent to-blue-400 bg-clip-text text-transparent;
+  }
+  .gradient-border {
+    @apply relative before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-notix-accent before:to-blue-500 before:p-[1px] before:-z-10;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-notix-accent px-4 py-2.5 text-sm font-medium text-notix-bg transition-all duration-200 hover:bg-notix-accentHover hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] focus:outline-none focus:ring-2 focus:ring-notix-accent focus:ring-offset-2 focus:ring-offset-notix-bg disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-notix-surface px-4 py-2.5 text-sm font-medium text-notix-text transition-all duration-200 hover:bg-notix-surfaceHover hover:border-white/10 border border-white/5 focus:outline-none focus:ring-2 focus:ring-notix-accent focus:ring-offset-2 focus:ring-offset-notix-bg disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-notix-textMuted transition-all duration-200 hover:text-notix-text hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-notix-accent focus:ring-offset-2 focus:ring-offset-notix-bg disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-red-600/20 px-4 py-2.5 text-sm font-medium text-red-400 transition-all duration-200 hover:bg-red-600/30 hover:text-red-300 border border-red-500/20 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-notix-bg disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .input-field {
+    @apply w-full rounded-lg bg-notix-surface px-4 py-2.5 text-sm text-notix-text placeholder:text-notix-textMuted/50 border border-white/10 transition-all duration-200 focus:border-notix-accent focus:outline-none focus:ring-2 focus:ring-notix-accent/20 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .card-base {
+    @apply rounded-xl bg-notix-surface border border-white/5 p-6 transition-all duration-300 hover:border-white/10;
+  }
+  .card-hover {
+    @apply card-base hover:shadow-[0_10px_40px_rgba(0,0,0,0.3)] hover:-translate-y-0.5;
+  }
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  .page-title {
+    @apply text-3xl sm:text-4xl font-bold tracking-tight text-notix-text;
+  }
+  .page-subtitle {
+    @apply mt-2 text-lg text-notix-textMuted;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-notix-bg;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-notix-surfaceHover rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-notix-accent/50;
+}

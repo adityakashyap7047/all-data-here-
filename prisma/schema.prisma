@@ -1,0 +1,580 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  SUPPORT
+  BILLING
+  CUSTOMER
+  API
+}
+
+enum VPSStatus {
+  PENDING
+  PROVISIONING
+  RUNNING
+  STOPPED
+  SUSPENDED
+  TERMINATED
+  ERROR
+}
+
+enum BackupStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum VPSActionType {
+  START
+  STOP
+  REBOOT
+  REINSTALL
+  RESIZE
+  BACKUP
+  RESTORE
+  CHANGE_PASSWORD
+  CHANGE_HOSTNAME
+  ENABLE_BACKUP
+  DISABLE_BACKUP
+}
+
+enum ActionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  FAILED
+}
+
+enum OrderItemType {
+  VPS_PLAN
+  ADDON
+  DOMAIN
+  SSL_CERTIFICATE
+  BACKUP_SERVICE
+  MANAGED_SERVICE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PAYPAL
+  CRYPTO
+  BANK_TRANSFER
+  BALANCE
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  WAITING_STAFF
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+  CRITICAL
+}
+
+enum TicketCategory {
+  GENERAL
+  BILLING
+  TECHNICAL
+  VPS
+  NETWORK
+  SECURITY
+  ABUSE
+  SALES
+  FEATURE_REQUEST
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  VPS_STATUS
+  BILLING
+  TICKET
+  SECURITY
+  MAINTENANCE
+  PROMOTIONAL
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerified   DateTime?
+  name            String?
+  passwordHash    String?
+  image           String?
+  role            Role      @default(CUSTOMER)
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  accounts        Account[]
+  sessions        Session[]
+  vpsInstances    VPSInstance[]
+  orders          Order[]
+  invoices        Invoice[]
+  tickets         Ticket[]
+  ticketMessages  TicketMessage[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  apiKeys         ApiKey[]
+  @@index([email])
+  @@index([role])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+model VPSPlan {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  cpu         Int
+  ram         Int
+  storage     Int
+  bandwidth   Int
+  ipv4Count   Int      @default(1)
+  ipv6Count   Int      @default(1)
+  priceMonthly Decimal @db.Decimal(10, 2)
+  priceYearly  Decimal? @db.Decimal(10, 2)
+  features    String[]
+  location    String
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  instances   VPSInstance[]
+  @@index([isActive, sortOrder])
+}
+
+model VPSInstance {
+  id                String      @id @default(cuid())
+  userId            String
+  planId            String
+  hostname          String
+  ipv4Address       String?     @unique
+  ipv6Address       String?     @unique
+  rootPassword      String
+  sshPort           Int         @default(22)
+  status            VPSStatus   @default(PENDING)
+  osTemplate        String
+  controlPanel      String?
+  backupEnabled     Boolean     @default(false)
+  monitoringEnabled Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  expiresAt         DateTime
+  suspendedAt       DateTime?
+  suspendedReason   String?
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              VPSPlan     @relation(fields: [planId], references: [id])
+  backups           VPSBackup[]
+  metrics           VPSMetric[]
+  actions           VPSAction[]
+  @@index([userId])
+  @@index([status])
+  @@index([planId])
+}
+
+model VPSBackup {
+  id          String       @id @default(cuid())
+  instanceId  String
+  name        String
+  size        BigInt
+  status      BackupStatus @default(PENDING)
+  filePath    String?
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+  instance    VPSInstance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  @@index([instanceId])
+  @@index([status])
+}
+
+model VPSMetric {
+  id         String      @id @default(cuid())
+  instanceId String
+  cpuUsage   Float
+  ramUsage   BigInt
+  diskUsage  BigInt
+  networkIn  BigInt
+  networkOut BigInt
+  timestamp  DateTime    @default(now())
+  instance   VPSInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  @@index([instanceId, timestamp])
+}
+
+model VPSAction {
+  id          String        @id @default(cuid())
+  instanceId  String
+  type        VPSActionType
+  status      ActionStatus  @default(PENDING)
+  payload     Json?
+  result      Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime      @default(now())
+  instance    VPSInstance   @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  @@index([instanceId])
+  @@index([status])
+}
+
+model Order {
+  id          String       @id @default(cuid())
+  userId      String
+  orderNumber String       @unique
+  status      OrderStatus  @default(PENDING)
+  subtotal    Decimal      @db.Decimal(10, 2)
+  tax         Decimal      @db.Decimal(10, 2)
+  total       Decimal      @db.Decimal(10, 2)
+  currency    String       @default("USD")
+  notes       String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  paidAt      DateTime?
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       OrderItem[]
+  invoices    Invoice[]
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String        @id @default(cuid())
+  orderId     String
+  type        OrderItemType
+  name        String
+  description String?
+  quantity    Int           @default(1)
+  unitPrice   Decimal       @db.Decimal(10, 2)
+  totalPrice  Decimal       @db.Decimal(10, 2)
+  metadata    Json?
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  @@index([orderId])
+}
+
+model Invoice {
+  id             String         @id @default(cuid())
+  userId         String
+  orderId        String?
+  invoiceNumber  String         @unique
+  status         InvoiceStatus  @default(DRAFT)
+  subtotal       Decimal        @db.Decimal(10, 2)
+  tax            Decimal        @db.Decimal(10, 2)
+  total          Decimal        @db.Decimal(10, 2)
+  currency       String         @default("USD")
+  dueDate        DateTime
+  paidAt         DateTime?
+  pdfUrl         String?
+  stripeInvoiceId String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order          Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  payments       Payment[]
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Payment {
+  id            String         @id @default(cuid())
+  invoiceId     String
+  amount        Decimal        @db.Decimal(10, 2)
+  currency      String         @default("USD")
+  method        PaymentMethod
+  status        PaymentStatus  @default(PENDING)
+  transactionId String?        @unique
+  provider      String
+  providerData  Json?
+  metadata      Json?
+  createdAt     DateTime       @default(now())
+  completedAt   DateTime?
+  invoice       Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  @@index([invoiceId])
+  @@index([transactionId])
+  @@index([status])
+}
+
+model Ticket {
+  id        String         @id @default(cuid())
+  userId    String
+  subject   String
+  status    TicketStatus   @default(OPEN)
+  priority  TicketPriority @default(NORMAL)
+  category  TicketCategory
+  assignedTo String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  closedAt  DateTime?
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  TicketMessage[]
+  @@index([userId])
+  @@index([status])
+  @@index([assignedTo])
+  @@index([createdAt])
+}
+
+model TicketMessage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  message   String   @db.Text
+  isStaff   Boolean  @default(false)
+  attachments String[]
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([ticketId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String             @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String             @db.Text
+  data      Json?
+  read      Boolean            @default(false)
+  readAt    DateTime?
+  createdAt DateTime           @default(now())
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  oldData   Json?
+  newData   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  keyHash     String   @unique
+  keyPrefix   String
+  permissions String[]
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PortfolioCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  icon        String?
+  color       String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       PortfolioItem[]
+  @@index([isActive, sortOrder])
+}
+
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  categoryId  String
+  title       String
+  slug        String   @unique
+  description String?  @db.Text
+  content     String?  @db.Text
+  image       String?
+  url         String?
+  tags        String[]
+  isFeatured  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  category    PortfolioCategory @relation(fields: [categoryId], references: [id])
+  @@index([categoryId, isActive, sortOrder])
+  @@index([slug])
+}
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  category  String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([category, isActive, sortOrder])
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  authorName  String
+  authorRole  String?
+  authorImage String?
+  content     String   @db.Text
+  rating      Int      @default(5)
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([isActive, sortOrder])
+}
+
+model StatusPageService {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  status      String   @default("operational")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  incidents   StatusIncident[]
+  @@index([slug])
+}
+
+model StatusIncident {
+  id          String   @id @default(cuid())
+  serviceId   String
+  title       String
+  description String   @db.Text
+  status      String   @default("investigating")
+  severity    String   @default("minor")
+  startedAt   DateTime @default(now())
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  service     StatusPageService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  updates     StatusIncidentUpdate[]
+  @@index([serviceId, status])
+  @@index([startedAt])
+}
+
+model StatusIncidentUpdate {
+  id          String   @id @default(cuid())
+  incidentId  String
+  message     String   @db.Text
+  status      String
+  createdAt   DateTime @default(now())
+  incident    StatusIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  @@index([incidentId])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @db.Text
+  type      String   @default("info")
+  isActive  Boolean  @default(true)
+  publishAt DateTime?
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([isActive, publishAt])
+  @@index([slug])
+}
