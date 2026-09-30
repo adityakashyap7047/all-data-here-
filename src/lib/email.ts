@@ -1,6 +1,4 @@
 import nodemailer from 'nodemailer';
-import { render } from '@react-email/render';
-import { ReactElement } from 'react';
 import { sanitizeHtml } from '@/lib/utils/security';
 
 const transporter = nodemailer.createTransport({
@@ -44,10 +42,9 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
 export async function sendTemplatedEmail(
   to: string,
   subject: string,
-  template: ReactElement
+  template: { subject: string; html: string }
 ) {
-  const html = await render(template);
-  return sendEmail({ to, subject, html });
+  return sendEmail({ to, subject: template.subject, html: template.html });
 }
 
 export const emailTemplates = {

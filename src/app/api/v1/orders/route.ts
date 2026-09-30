@@ -52,7 +52,7 @@ export async function POST(request: Request) {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.unitPrice * item.quantity,
-            metadata: item.metadata,
+            metadata: item.metadata as any,
           })),
         },
       },
@@ -99,7 +99,7 @@ export async function GET(request: Request) {
     if (orderId) {
       const order = await prisma.order.findUnique({
         where: { id: orderId },
-        include: { items: true, invoices: true, payments: true },
+        include: { items: true, invoices: true },
       });
 
       if (!order) {
@@ -131,7 +131,7 @@ export async function GET(request: Request) {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { items: true, _count: { select: { invoices: true, payments: true } } },
+        include: { items: true, _count: { select: { invoices: true } } },
       }),
       prisma.order.count({ where }),
     ]);

@@ -478,26 +478,28 @@ export default function AdminTicketsClient({ initialData, searchParams }: AdminT
             <Table>
               <TableHeader>
                 <TableRow>
-                  {['Subject', 'Customer', 'Status', 'Priority', 'Category', 'Assigned', 'Messages', 'Created', 'Actions'].map((header, i) => (
-                    <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
-                      const sortMap: Record<string, string> = {
-                        Subject: 'subject',
-                        Customer: 'user',
-                        Status: 'status',
-                        Priority: 'priority',
-                        Category: 'category',
-                        Assigned: 'assignedTo',
-                        Messages: 'messages',
-                        Created: 'createdAt',
-                      };
-                      if (sortMap[header]) handleSort(sortMap[header]);
-                    }}>
-                      <div className="flex items-center gap-1">
-                        {header}
-                        {sortMap[header] && <SortIcon column={sortMap[header]} />}
-                      </div>
-                    </TableHead>
-                  ))}
+                  {(() => {
+                    const sortMap: Record<string, string> = {
+                      Subject: 'subject',
+                      Customer: 'user',
+                      Status: 'status',
+                      Priority: 'priority',
+                      Category: 'category',
+                      Assigned: 'assignedTo',
+                      Messages: 'messages',
+                      Created: 'createdAt',
+                    };
+                    return ['Subject', 'Customer', 'Status', 'Priority', 'Category', 'Assigned', 'Messages', 'Created', 'Actions'].map((header, i) => (
+                      <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
+                        if (sortMap[header]) handleSort(sortMap[header]);
+                      }}>
+                        <div className="flex items-center gap-1">
+                          {header}
+                          {sortMap[header] && <SortIcon column={sortMap[header]} />}
+                        </div>
+                      </TableHead>
+                    ));
+                  })()}
                 </TableRow>
               </TableHeader>
               <TableBody>

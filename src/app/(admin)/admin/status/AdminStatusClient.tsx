@@ -111,7 +111,7 @@ interface AdminStatusClientProps {
 
 function ServiceForm({ service, onSubmit, onClose, loading }: {
   service: ServiceData | null;
-  onSubmit: (data: ServiceFormData) => void;
+  onSubmit: (data: z.infer<typeof serviceSchema>) => void;
   onClose: () => void;
   loading: boolean;
 }) {
@@ -124,7 +124,13 @@ function ServiceForm({ service, onSubmit, onClose, loading }: {
       description: '',
       status: 'operational',
       sortOrder: 0,
-      ...service,
+      ...(service ? {
+        name: service.name,
+        slug: service.slug,
+        description: service.description ?? '',
+        status: service.status as z.infer<typeof serviceSchema>['status'],
+        sortOrder: service.sortOrder,
+      } : {}),
     },
   });
 
@@ -211,7 +217,7 @@ function ServiceForm({ service, onSubmit, onClose, loading }: {
 
 function IncidentForm({ incident, onSubmit, onClose, loading, services }: {
   incident: IncidentData | null;
-  onSubmit: (data: IncidentFormData) => void;
+  onSubmit: (data: z.infer<typeof incidentSchema>) => void;
   onClose: () => void;
   loading: boolean;
   services: ServiceData[];
@@ -225,7 +231,13 @@ function IncidentForm({ incident, onSubmit, onClose, loading, services }: {
       description: '',
       status: 'investigating',
       severity: 'minor',
-      ...incident,
+      ...(incident ? {
+        serviceId: incident.serviceId,
+        title: incident.title,
+        description: incident.description,
+        status: incident.status as z.infer<typeof incidentSchema>['status'],
+        severity: incident.severity as z.infer<typeof incidentSchema>['severity'],
+      } : {}),
     },
   });
 
@@ -335,7 +347,7 @@ function IncidentForm({ incident, onSubmit, onClose, loading, services }: {
 
 function IncidentUpdateForm({ incident, onSubmit, onClose, loading }: {
   incident: IncidentData;
-  onSubmit: (data: IncidentUpdateFormData) => void;
+  onSubmit: (data: z.infer<typeof incidentUpdateSchema>) => void;
   onClose: () => void;
   loading: boolean;
 }) {
@@ -343,7 +355,7 @@ function IncidentUpdateForm({ incident, onSubmit, onClose, loading }: {
     resolver: zodResolver(incidentUpdateSchema),
     defaultValues: {
       message: '',
-      status: incident.status,
+      status: incident.status as z.infer<typeof incidentUpdateSchema>['status'],
     },
   });
 

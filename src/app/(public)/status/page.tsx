@@ -7,7 +7,7 @@ import {
   RefreshCw, Clock, Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatRelativeTime, formatDate } from '@/lib/utils';
+import { cn, formatRelativeTime, formatDate } from '@/lib/utils';
 
 function StatusIcon({ config }: { config: { icon: any; color: string } }) {
   const Icon = config.icon;

@@ -3,7 +3,7 @@
 import { 
   Server, CreditCard, ShoppingBag, MessageSquare, 
   TrendingUp, ArrowUpRight, Clock, CheckCircle,
-  AlertTriangle, Activity, ExternalLink
+  AlertTriangle, Activity, ExternalLink, Key
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';

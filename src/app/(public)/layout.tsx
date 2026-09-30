@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Menu, X, Sun, Moon, Server, Github } from 'lucide-react';
 import { useState } from 'react';
@@ -26,9 +28,9 @@ export default function PublicLayout({
         <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Global">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-8">
-              <Link href="/" className="flex items-center gap-2" aria-label="NOTIXCLOUD Home">
+              <Link href="/" className="flex items-center gap-2" aria-label="NOTIXCLOUD Home" suppressHydrationWarning>
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-notix-accent to-blue-500 flex items-center justify-center">
-                  <Server className="w-6 h-6 text-notix-bg" />
+                  <Server className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xl font-bold text-notix-text">NOTIXCLOUD</span>
               </Link>
@@ -108,9 +110,9 @@ export default function PublicLayout({
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div className="space-y-4">
-              <Link href="/" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2" suppressHydrationWarning>
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-notix-accent to-blue-500 flex items-center justify-center">
-                  <Server className="w-6 h-6 text-notix-bg" />
+                  <Server className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-xl font-bold text-notix-text">NOTIXCLOUD</span>
               </Link>

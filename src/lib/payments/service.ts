@@ -136,7 +136,7 @@ export class PaymentService {
     }
 
     const verification = await providerInstance.verifyPayment({
-      providerPaymentId: payment.transactionId || payment.providerData?.id as string,
+      providerPaymentId: payment.transactionId || (payment.providerData as any)?.id || '',
       paymentId: payment.id,
     });
 
@@ -171,7 +171,7 @@ export class PaymentService {
       where: {
         action: 'WEBHOOK_RECEIVED',
         entity: 'Payment',
-        metadata: {
+        newData: {
           path: ['providerEventId'],
           equals: webhookPayload.providerEventId,
         },
@@ -189,7 +189,7 @@ export class PaymentService {
         action: 'WEBHOOK_RECEIVED',
         entity: 'Payment',
         entityId: result.paymentId,
-        metadata: {
+        newData: {
           provider: webhookPayload.provider,
           eventType: webhookPayload.eventType,
           providerEventId: webhookPayload.providerEventId,
@@ -260,7 +260,7 @@ export class PaymentService {
       },
     });
 
-    if (payment.order) {
+    if (payment.orderId) {
       await prisma.order.update({
         where: { id: payment.orderId },
         data: { status: 'REFUNDED' },
@@ -286,6 +286,7 @@ export class PaymentService {
   private static async handleSuccessfulPayment(payment: any): Promise<void> {
     const completedOrder = await prisma.order.findUnique({
       where: { id: payment.orderId },
+      include: { items: true },
     });
 
     if (completedOrder && completedOrder.status !== 'COMPLETED') {
@@ -312,7 +313,7 @@ export class PaymentService {
         const existingVps = await prisma.vPSInstance.findFirst({
           where: {
             userId: completedOrder.userId,
-            planId: { in: vpsItems.map((i: any) => i.metadata?.planId).filter(Boolean) },
+            planId: { in: vpsItems.map((i: any) => (i.metadata as any)?.planId).filter(Boolean) },
             status: { in: ['PENDING', 'PROVISIONING', 'RUNNING'] },
           },
         });
@@ -344,7 +345,7 @@ export class PaymentService {
 
     for (const item of order.items) {
       if (item.type === 'VPS_PLAN') {
-        const planId = item.metadata?.planId as string;
+        const planId = (item.metadata as any)?.planId as string;
         if (!planId) continue;
 
         const plan = await prisma.vPSPlan.findUnique({ where: { id: planId } });

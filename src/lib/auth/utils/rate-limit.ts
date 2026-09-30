@@ -14,7 +14,7 @@ function getMemoryStoreKey(action: string, identifier: string): string {
 
 function cleanupMemoryStore(): void {
   const now = Date.now();
-  for (const [key, value] of memoryStore.entries()) {
+  for (const [key, value] of Array.from(memoryStore.entries())) {
     if (value.resetTime < now) {
       memoryStore.delete(key);
     }

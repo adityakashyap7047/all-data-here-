@@ -35,7 +35,6 @@ export async function GET(request: Request) {
       ...(status && { status: status as any }),
       ...(search && {
         OR: [
-          { name: { contains: search, mode: 'insensitive' as const } },
           { hostname: { contains: search, mode: 'insensitive' as const } },
           { ipv4Address: { contains: search } },
         ],
@@ -138,7 +137,7 @@ export async function POST(request: Request) {
         action: 'VPS_CREATED',
         entity: 'VPSInstance',
         entityId: instance.id,
-        newData: { hostname: instance.name, planId: plan.id, osTemplate: data.osTemplate },
+        newData: { hostname: instance.hostname, planId: plan.id, osTemplate: data.osTemplate },
       },
     });
 

@@ -60,7 +60,7 @@ export abstract class BasePaymentProvider implements PaymentProvider {
   private cleanupIdempotencyStore(): void {
     const now = Date.now();
     const maxAge = 24 * 60 * 60 * 1000;
-    for (const [key, value] of this.idempotencyStore.entries()) {
+    for (const [key, value] of Array.from(this.idempotencyStore.entries())) {
       if (now - value.createdAt > maxAge) {
         this.idempotencyStore.delete(key);
       }
@@ -96,7 +96,6 @@ export abstract class BasePaymentProvider implements PaymentProvider {
   protected mapProviderStatusToInternal(status: string): PaymentStatus {
     const statusMap: Record<string, PaymentStatus> = {
       succeeded: 'completed',
-      succeeded: 'completed',
       paid: 'completed',
       completed: 'completed',
       processing: 'processing',
@@ -125,7 +124,7 @@ export abstract class BasePaymentProvider implements PaymentProvider {
     await prisma.payment.update({
       where: { id: paymentId },
       data: {
-        status,
+        status: status.toUpperCase() as any,
         providerData: rawResponse as any,
         ...(status === 'completed' && { completedAt: new Date() }),
       },

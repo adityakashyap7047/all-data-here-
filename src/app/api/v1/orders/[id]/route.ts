@@ -22,7 +22,7 @@ export async function GET(
 
     const order = await prisma.order.findUnique({
       where: { id },
-      include: { items: true, invoices: true, payments: true, user: { select: { id: true, email: true, name: true } } },
+      include: { items: true, invoices: true, user: { select: { id: true, email: true, name: true } } },
     });
 
     if (!order) {

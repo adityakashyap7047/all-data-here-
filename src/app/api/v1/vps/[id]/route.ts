@@ -170,7 +170,7 @@ export async function DELETE(
         action: 'VPS_DELETED',
         entity: 'VPSInstance',
         entityId: id,
-        oldData: { name: instance.name, hostname: instance.hostname },
+        oldData: { hostname: instance.hostname },
       },
     });
 

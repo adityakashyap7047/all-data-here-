@@ -368,25 +368,27 @@ export default function AdminUsersClient({ initialData, searchParams }: AdminUse
             <Table>
               <TableHeader>
                 <TableRow>
-                  {['User', 'Role', 'Status', 'Servers', 'Orders', 'Tickets', 'Joined', 'Actions'].map((header, i) => (
-                    <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
-                      const sortMap: Record<string, string> = {
-                        User: 'name',
-                        Role: 'role',
-                        Status: 'emailVerified',
-                        Servers: 'vpsInstances',
-                        Orders: 'orders',
-                        Tickets: 'tickets',
-                        Joined: 'createdAt',
-                      };
-                      if (sortMap[header]) handleSort(sortMap[header]);
-                    }}>
-                      <div className="flex items-center gap-1">
-                        {header}
-                        {sortMap[header] && <SortIcon column={sortMap[header]} />}
-                      </div>
-                    </TableHead>
-                  ))}
+                  {(() => {
+                    const sortMap: Record<string, string> = {
+                      User: 'name',
+                      Role: 'role',
+                      Status: 'emailVerified',
+                      Servers: 'vpsInstances',
+                      Orders: 'orders',
+                      Tickets: 'tickets',
+                      Joined: 'createdAt',
+                    };
+                    return ['User', 'Role', 'Status', 'Servers', 'Orders', 'Tickets', 'Joined', 'Actions'].map((header, i) => (
+                      <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
+                        if (sortMap[header]) handleSort(sortMap[header]);
+                      }}>
+                        <div className="flex items-center gap-1">
+                          {header}
+                          {sortMap[header] && <SortIcon column={sortMap[header]} />}
+                        </div>
+                      </TableHead>
+                    ));
+                  })()}
                 </TableRow>
               </TableHeader>
               <TableBody>

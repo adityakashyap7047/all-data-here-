@@ -18,7 +18,7 @@ async function getDashboardStats() {
     completedPayments,
     openTickets,
     recentUsers,
-    recentOrders,
+    recentOrdersRaw,
     recentTickets,
   ] = await Promise.all([
     prisma.user.count(),
@@ -46,6 +46,13 @@ async function getDashboardStats() {
       include: { user: { select: { email: true, name: true } } },
     }),
   ]);
+
+  const recentOrders = recentOrdersRaw.map(order => ({
+    ...order,
+    total: Number(order.total),
+    subtotal: Number(order.subtotal),
+    tax: Number(order.tax),
+  }));
 
   return {
     totalUsers,

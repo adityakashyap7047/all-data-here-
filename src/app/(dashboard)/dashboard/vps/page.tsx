@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { 
   Server, Plus, Search, Filter, MoreVertical,
   Play, Square, RotateCw, Terminal, Database,
-  RefreshCw, Trash2, Edit, Download, ExternalLink
+  RefreshCw, Trash2, Edit, Download, ExternalLink,
+  AlertTriangle
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';

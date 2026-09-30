@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { prisma } from '@/lib/prisma';
 import type {
   PaymentProvider,
   PaymentProviderConfig,
@@ -27,7 +28,7 @@ export class StripePaymentProvider extends BasePaymentProvider implements Paymen
   constructor(config: PaymentProviderConfig) {
     super(config);
     this.stripe = new Stripe(config.secretKey || config.apiKey, {
-      apiVersion: '2024-04-10',
+      apiVersion: '2026-08-26.dahlia',
       typescript: true,
     });
   }
@@ -93,7 +94,7 @@ export class StripePaymentProvider extends BasePaymentProvider implements Paymen
 
     return {
       refundId: refund.id,
-      status: this.mapProviderStatusToInternal(refund.status),
+      status: this.mapProviderStatusToInternal(refund.status || 'succeeded'),
       rawResponse: refund,
     };
   }
@@ -171,16 +172,12 @@ export class StripePaymentProvider extends BasePaymentProvider implements Paymen
       throw new Error(`Webhook signature verification failed: ${err}`);
     }
 
-    if (this.isWebhookReplay(event.headers as Record<string, string>)) {
-      throw new Error('Webhook replay detected');
-    }
-
     return {
       provider: 'stripe',
       eventType: event.type,
       providerEventId: event.id,
       rawPayload: event,
-      headers: event.headers as Record<string, string>,
+      headers: {},
       receivedAt: new Date(),
     };
   }

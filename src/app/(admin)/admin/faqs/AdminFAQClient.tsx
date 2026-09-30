@@ -351,22 +351,24 @@ export default function AdminFAQClient({ initialData, searchParams }: AdminFAQCl
             <Table>
               <TableHeader>
                 <TableRow>
-                  {['Question', 'Category', 'Status', 'Order', 'Actions'].map((header, i) => (
-                    <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
-                      const sortMap: Record<string, string> = {
-                        Question: 'question',
-                        Category: 'category',
-                        Status: 'isActive',
-                        Order: 'sortOrder',
-                      };
-                      if (sortMap[header]) handleSort(sortMap[header]);
-                    }}>
-                      <div className="flex items-center gap-1">
-                        {header}
-                        {sortMap[header] && <SortIcon column={sortMap[header]} />}
-                      </div>
-                    </TableHead>
-                  ))}
+                  {(() => {
+                    const sortMap: Record<string, string> = {
+                      Question: 'question',
+                      Category: 'category',
+                      Status: 'isActive',
+                      Order: 'sortOrder',
+                    };
+                    return ['Question', 'Category', 'Status', 'Order', 'Actions'].map((header, i) => (
+                      <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
+                        if (sortMap[header]) handleSort(sortMap[header]);
+                      }}>
+                        <div className="flex items-center gap-1">
+                          {header}
+                          {sortMap[header] && <SortIcon column={sortMap[header]} />}
+                        </div>
+                      </TableHead>
+                    ));
+                  })()}
                 </TableRow>
               </TableHeader>
               <TableBody>

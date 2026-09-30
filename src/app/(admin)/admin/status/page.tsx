@@ -14,7 +14,7 @@ interface SearchParams {
 }
 
 async function getStatusData() {
-  const [services, incidents] = await Promise.all([
+  const [servicesRaw, incidents] = await Promise.all([
     prisma.statusPageService.findMany({
       orderBy: { sortOrder: 'asc' },
       include: {
@@ -23,6 +23,9 @@ async function getStatusData() {
           where: { status: { in: ['investigating', 'identified', 'monitoring'] } },
           orderBy: { startedAt: 'desc' },
           take: 5,
+          include: {
+            updates: { orderBy: { createdAt: 'desc' }, take: 3 },
+          },
         },
       },
     }),
@@ -30,9 +33,21 @@ async function getStatusData() {
       where: { status: { in: ['investigating', 'identified', 'monitoring', 'resolved'] } },
       orderBy: { startedAt: 'desc' },
       take: 10,
-      include: { service: true, updates: { orderBy: { createdAt: 'desc' }, take: 3 } },
+      include: { 
+        service: true, 
+        updates: { orderBy: { createdAt: 'desc' }, take: 3 } 
+      },
     }),
   ]);
+
+  // Add service reference to nested incidents for type compatibility
+  const services = servicesRaw.map(svc => ({
+    ...svc,
+    incidents: svc.incidents.map(inc => ({
+      ...inc,
+      service: { id: svc.id, name: svc.name, slug: svc.slug },
+    })),
+  }));
 
   return { services, incidents };
 }

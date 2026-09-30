@@ -252,24 +252,26 @@ export default function AdminAuditLogsClient({ initialData, searchParams }: Admi
             <Table>
               <TableHeader>
                 <TableRow>
-                  {['Date', 'User', 'Action', 'Entity', 'Entity ID', 'IP', 'Details'].map((header, i) => (
-                    <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
-                      const sortMap: Record<string, string> = {
-                        Date: 'createdAt',
-                        User: 'userId',
-                        Action: 'action',
-                        Entity: 'entity',
-                        'Entity ID': 'entityId',
-                        IP: 'ipAddress',
-                      };
-                      if (sortMap[header]) handleSort(sortMap[header]);
-                    }}>
-                      <div className="flex items-center gap-1">
-                        {header}
-                        {sortMap[header] && <SortIcon column={sortMap[header]} />}
-                      </div>
-                    </TableHead>
-                  ))}
+                  {(() => {
+                    const sortMap: Record<string, string> = {
+                      Date: 'createdAt',
+                      User: 'userId',
+                      Action: 'action',
+                      Entity: 'entity',
+                      'Entity ID': 'entityId',
+                      IP: 'ipAddress',
+                    };
+                    return ['Date', 'User', 'Action', 'Entity', 'Entity ID', 'IP', 'Details'].map((header, i) => (
+                      <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
+                        if (sortMap[header]) handleSort(sortMap[header]);
+                      }}>
+                        <div className="flex items-center gap-1">
+                          {header}
+                          {sortMap[header] && <SortIcon column={sortMap[header]} />}
+                        </div>
+                      </TableHead>
+                    ));
+                  })()}
                 </TableRow>
               </TableHeader>
               <TableBody>

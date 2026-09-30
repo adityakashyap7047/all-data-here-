@@ -44,8 +44,8 @@ export class ManualPaymentProvider extends BasePaymentProvider implements Paymen
 
     const payment = await prisma.payment.create({
       data: {
-        userId: metadata.userId,
-        invoiceId: metadata.invoiceId,
+        userId: metadata.userId!,
+        ...(metadata.invoiceId && { invoiceId: metadata.invoiceId }),
         amount,
         currency,
         method: request.method.toUpperCase() as any,
@@ -102,7 +102,7 @@ export class ManualPaymentProvider extends BasePaymentProvider implements Paymen
     const refund = await prisma.payment.create({
       data: {
         userId: payment.userId,
-        invoiceId: payment.invoiceId,
+        ...(payment.invoiceId && { invoiceId: payment.invoiceId }),
         amount: refundAmount,
         currency: payment.currency,
         method: payment.method,
@@ -179,7 +179,7 @@ export class BalancePaymentProvider extends BasePaymentProvider implements Payme
     const payment = await prisma.payment.create({
       data: {
         userId: metadata.userId,
-        invoiceId: metadata.invoiceId,
+        ...(metadata.invoiceId && { invoiceId: metadata.invoiceId }),
         amount,
         currency,
         method: 'BALANCE',
@@ -236,7 +236,7 @@ export class BalancePaymentProvider extends BasePaymentProvider implements Payme
     const refund = await prisma.payment.create({
       data: {
         userId: payment.userId,
-        invoiceId: payment.invoiceId,
+        ...(payment.invoiceId && { invoiceId: payment.invoiceId }),
         amount: refundAmount,
         currency: payment.currency,
         method: 'BALANCE',

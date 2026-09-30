@@ -42,7 +42,7 @@ interface AdminSettingsClientProps {
   initialSettings: Record<string, SettingData[]>;
 }
 
-const settingSchemas: Record<string, z.ZodSchema> = {
+const settingSchemas: Record<string, z.ZodObject<any>> = {
   general: z.object({
     siteName: z.string().min(1),
     siteUrl: z.string().url(),
@@ -159,7 +159,7 @@ function SettingsForm({ category, settings, onSave, loading }: {
               className="mt-1"
             />
             {form.formState.errors[key] && (
-              <p className="text-sm text-red-400 mt-1">{form.formState.errors[key].message}</p>
+              <p className="text-sm text-red-400 mt-1">{String(form.formState.errors[key]?.message ?? 'Invalid value')}</p>
             )}
           </div>
         );
@@ -180,7 +180,7 @@ function SettingsForm({ category, settings, onSave, loading }: {
               placeholder={isUrl ? 'https://...' : ''}
             />
             {form.formState.errors[key] && (
-              <p className="text-sm text-red-400 mt-1">{form.formState.errors[key].message}</p>
+              <p className="text-sm text-red-400 mt-1">{String(form.formState.errors[key]?.message ?? 'Invalid value')}</p>
             )}
           </div>
         );

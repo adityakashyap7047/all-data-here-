@@ -75,7 +75,7 @@ interface AdminPortfolioCategoriesClientProps {
 
 function CategoryForm({ category, onSubmit, onClose, loading }: {
   category: CategoryData | null;
-  onSubmit: (data: CategoryFormData) => void;
+  onSubmit: (data: z.infer<typeof categorySchema>) => void;
   onClose: () => void;
   loading: boolean;
 }) {
@@ -90,7 +90,15 @@ function CategoryForm({ category, onSubmit, onClose, loading }: {
       color: '#06b6d4',
       sortOrder: 0,
       isActive: true,
-      ...category,
+      ...(category ? {
+        name: category.name,
+        slug: category.slug,
+        description: category.description ?? '',
+        icon: category.icon ?? '',
+        color: category.color ?? '#06b6d4',
+        sortOrder: category.sortOrder,
+        isActive: category.isActive,
+      } : {}),
     },
   });
 
@@ -334,22 +342,24 @@ export default function AdminPortfolioCategoriesClient({ initialData, searchPara
             <Table>
               <TableHeader>
                 <TableRow>
-                  {['Category', 'Items', 'Status', 'Order', 'Actions'].map((header, i) => (
-                    <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
-                      const sortMap: Record<string, string> = {
-                        Category: 'name',
-                        Items: 'items',
-                        Status: 'isActive',
-                        Order: 'sortOrder',
-                      };
-                      if (sortMap[header]) handleSort(sortMap[header]);
-                    }}>
-                      <div className="flex items-center gap-1">
-                        {header}
-                        {sortMap[header] && <SortIcon column={sortMap[header]} />}
-                      </div>
-                    </TableHead>
-                  ))}
+                  {(() => {
+                    const sortMap: Record<string, string> = {
+                      Category: 'name',
+                      Items: 'items',
+                      Status: 'isActive',
+                      Order: 'sortOrder',
+                    };
+                    return ['Category', 'Items', 'Status', 'Order', 'Actions'].map((header, i) => (
+                      <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
+                        if (sortMap[header]) handleSort(sortMap[header]);
+                      }}>
+                        <div className="flex items-center gap-1">
+                          {header}
+                          {sortMap[header] && <SortIcon column={sortMap[header]} />}
+                        </div>
+                      </TableHead>
+                    ));
+                  })()}
                 </TableRow>
               </TableHeader>
               <TableBody>

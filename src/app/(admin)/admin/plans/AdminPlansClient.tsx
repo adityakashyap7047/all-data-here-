@@ -26,6 +26,7 @@ import {
   ToggleRight,
   Loader2,
   Server,
+  MoreVertical,
 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -47,7 +48,7 @@ const planSchema = z.object({
   ipv4Count: z.coerce.number().int().min(0).default(1),
   ipv6Count: z.coerce.number().int().min(0).default(1),
   priceMonthly: z.coerce.number().positive('Monthly price must be positive'),
-  priceYearly: z.coerce.number().positive('Yearly price must be positive').optional(),
+  priceYearly: z.coerce.number().positive('Yearly price must be positive').nullable().optional(),
   features: z.array(z.string()).default([]),
   location: z.string().min(1, 'Location is required'),
   isActive: z.boolean().default(true),
@@ -98,7 +99,7 @@ interface AdminPlansClientProps {
 
 function PlanForm({ plan, onSubmit, onClose, loading }: {
   plan: PlanData | null;
-  onSubmit: (data: PlanFormData) => void;
+  onSubmit: (data: z.infer<typeof planSchema>) => void;
   onClose: () => void;
   loading: boolean;
 }) {
@@ -121,7 +122,23 @@ function PlanForm({ plan, onSubmit, onClose, loading }: {
       location: 'us-east',
       isActive: true,
       sortOrder: 0,
-      ...plan,
+      ...(plan ? {
+        name: plan.name,
+        slug: plan.slug,
+        description: plan.description ?? '',
+        cpu: plan.cpu,
+        ram: plan.ram,
+        storage: plan.storage,
+        bandwidth: plan.bandwidth,
+        ipv4Count: plan.ipv4Count,
+        ipv6Count: plan.ipv6Count,
+        priceMonthly: Number(plan.priceMonthly),
+        priceYearly: plan.priceYearly ? Number(plan.priceYearly) : undefined,
+        features: plan.features,
+        location: plan.location,
+        isActive: plan.isActive,
+        sortOrder: plan.sortOrder,
+      } : {}),
     },
   });
 
@@ -480,25 +497,27 @@ export default function AdminPlansClient({ initialData, searchParams }: AdminPla
             <Table>
               <TableHeader>
                 <TableRow>
-                  {['Plan', 'Resources', 'Pricing', 'Location', 'Instances', 'Status', 'Sort', 'Actions'].map((header, i) => (
-                    <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
-                      const sortMap: Record<string, string> = {
-                        Plan: 'name',
-                        Resources: 'cpu',
-                        Pricing: 'priceMonthly',
-                        Location: 'location',
-                        Instances: 'instances',
-                        Status: 'isActive',
-                        Sort: 'sortOrder',
-                      };
-                      if (sortMap[header]) handleSort(sortMap[header]);
-                    }}>
-                      <div className="flex items-center gap-1">
-                        {header}
-                        {sortMap[header] && <SortIcon column={sortMap[header]} />}
-                      </div>
-                    </TableHead>
-                  ))}
+                  {(() => {
+                    const sortMap: Record<string, string> = {
+                      Plan: 'name',
+                      Resources: 'cpu',
+                      Pricing: 'priceMonthly',
+                      Location: 'location',
+                      Instances: 'instances',
+                      Status: 'isActive',
+                      Sort: 'sortOrder',
+                    };
+                    return ['Plan', 'Resources', 'Pricing', 'Location', 'Instances', 'Status', 'Sort', 'Actions'].map((header, i) => (
+                      <TableHead key={header} className="cursor-pointer hover:bg-white/5" onClick={() => {
+                        if (sortMap[header]) handleSort(sortMap[header]);
+                      }}>
+                        <div className="flex items-center gap-1">
+                          {header}
+                          {sortMap[header] && <SortIcon column={sortMap[header]} />}
+                        </div>
+                      </TableHead>
+                    ));
+                  })()}
                 </TableRow>
               </TableHeader>
               <TableBody>

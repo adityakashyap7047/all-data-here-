@@ -80,7 +80,7 @@ export function csrfProtection(request: NextRequest): { valid: boolean; error?: 
 
 export function cleanupCsrfTokens(): void {
   const now = Date.now();
-  for (const [key, value] of csrfTokens.entries()) {
+  for (const [key, value] of Array.from(csrfTokens.entries())) {
     if (value.expires < now) {
       csrfTokens.delete(key);
     }

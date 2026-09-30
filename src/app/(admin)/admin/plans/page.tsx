@@ -36,7 +36,7 @@ async function getPlans(searchParams: SearchParams) {
     ...(isActive !== undefined && { isActive: isActive === 'true' }),
   };
 
-  const [plans, total] = await Promise.all([
+  const [plansRaw, total] = await Promise.all([
     prisma.vPSPlan.findMany({
       where,
       skip,
@@ -48,6 +48,12 @@ async function getPlans(searchParams: SearchParams) {
     }),
     prisma.vPSPlan.count({ where }),
   ]);
+
+  const plans = plansRaw.map(plan => ({
+    ...plan,
+    priceMonthly: Number(plan.priceMonthly),
+    priceYearly: plan.priceYearly ? Number(plan.priceYearly) : null,
+  }));
 
   return {
     plans,
