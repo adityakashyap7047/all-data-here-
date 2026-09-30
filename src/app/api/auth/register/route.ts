@@ -61,6 +61,12 @@ export async function POST(request: NextRequest) {
           newData: { email: normalizedEmail },
         },
       });
+
+      // Return identical success response to prevent email enumeration
+      return NextResponse.json(
+        { message: 'Registration successful. Please check your email to verify your account.' },
+        { status: 201 }
+      );
     }
 
     const passwordHash = await hash(password, 12);
@@ -76,7 +82,8 @@ export async function POST(request: NextRequest) {
 
     const token = await generateVerificationToken(user.id, normalizedEmail);
 
-    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'http://localhost:3000';
+    const verifyUrl = `${appUrl}/verify-email?token=${token}`;
     await sendTemplatedEmail(normalizedEmail, 'Verify your NOTIXCLOUD account', emailTemplates.verifyEmail(verifyUrl, name));
 
     await prisma.auditLog.create({
