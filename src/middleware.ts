@@ -1,4 +1,7 @@
+export const runtime = 'nodejs';
+
 import { auth } from '@/lib/auth';
+import { getNeonUserFromCookie, verifyNeonToken } from '@/lib/neon-auth';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -15,12 +18,31 @@ const publicRoutes = [
   '/verify-email',
   '/api/auth',
   '/api/webhooks',
+  '/api/auth/neon',
 ];
 
 const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
 
 const dashboardRoutes = ['/dashboard'];
 const adminRoutes = ['/admin'];
+
+async function getSession(request: NextRequest) {
+  const neonUser = await getNeonUserFromCookie(request);
+  if (neonUser) {
+    return { user: neonUser };
+  }
+
+  const authHeader = request.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    const verified = await verifyNeonToken(token);
+    if (verified) {
+      return { user: verified };
+    }
+  }
+
+  return await auth();
+}
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -34,7 +56,7 @@ export default async function middleware(request: NextRequest) {
   const isDashboardRoute = dashboardRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
   const isAdminRoute = adminRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
 
-  const session = await auth();
+  const session = await getSession(request);
 
   if (isAuthRoute && session?.user) {
     const redirectUrl = new URL('/dashboard', request.url);
@@ -54,7 +76,7 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    const userRole = session.user.role;
+    const userRole = (session.user as { role?: string }).role ?? 'CUSTOMER';
     const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'SUPPORT', 'BILLING'];
 
     if (!allowedRoles.includes(userRole)) {
@@ -62,7 +84,8 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.redirect(dashboardUrl);
     }
 
-    if (session.user.twoFactorEnabled === false && ['SUPER_ADMIN', 'ADMIN'].includes(userRole)) {
+    const twoFactorEnabled = (session.user as { two_factor_enabled?: boolean }).two_factor_enabled ?? false;
+    if (twoFactorEnabled === false && ['SUPER_ADMIN', 'ADMIN'].includes(userRole)) {
       const settingsUrl = new URL('/dashboard/settings#security', request.url);
       settingsUrl.searchParams.set('require2fa', 'true');
       return NextResponse.redirect(settingsUrl);
@@ -78,7 +101,7 @@ export default async function middleware(request: NextRequest) {
     }
 
     if (pathname.startsWith('/api/v1/admin/')) {
-      const userRole = session.user.role;
+      const userRole = (session.user as { role?: string }).role ?? 'CUSTOMER';
       const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'SUPPORT', 'BILLING'];
 
       if (!allowedRoles.includes(userRole)) {

@@ -6,6 +6,8 @@ import { verifyToken, consumeVerificationToken } from '@/lib/auth/utils/tokens';
 import { rateLimit } from '@/lib/auth/utils/rate-limit';
 import { validatePasswordStrength } from '@/lib/utils/security';
 
+export const dynamic = 'force-dynamic';
+
 const resetPasswordSchema = z.object({
   token: z.string().min(1),
   password: z.string().min(8, 'Password must be at least 8 characters'),

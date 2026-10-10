@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: '1G'
+        reservations:
+          cpus: '0.5'
+          memory: '512M'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    env_file:
+      - ../.env.production
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - notixcloud-network
+
+  db:
+    image: postgres:16-alpine
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: '4G'
+        reservations:
+          cpus: '1'
+          memory: '2G'
+    environment:
+      POSTGRES_USER: ${DB_USER:-notixcloud}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: notixcloud
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - notixcloud-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-notixcloud}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '512M'
+        reservations:
+          cpus: '0.25'
+          memory: '256M'
+    volumes:
+      - redisdata:/data
+    networks:
+      - notixcloud-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cloudflare Tunnel — replaces nginx entirely
+  # No ports 80/443 needed. Zero exposed ports on the server.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - app
+    networks:
+      - notixcloud-network
+    restart: unless-stopped
+
+networks:
+  notixcloud-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:

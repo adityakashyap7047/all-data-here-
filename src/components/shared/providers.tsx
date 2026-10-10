@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { NeonAuthProvider } from './neon-auth-provider';
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -22,35 +23,37 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <SessionProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {children}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              className: 'bg-notix-surface border border-white/10 text-notix-text',
-              duration: 4000,
-              style: {
-                background: '#161F30',
-                color: '#F8FAFC',
-                border: '1px solid rgba(255,255,255,0.1)',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#10B981',
-                  secondary: '#F8FAFC',
+      <NeonAuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+            {children}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                className: 'bg-notix-surface border border-white/10 text-notix-text',
+                duration: 4000,
+                style: {
+                  background: '#161F30',
+                  color: '#F8FAFC',
+                  border: '1px solid rgba(255,255,255,0.1)',
                 },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#EF4444',
-                  secondary: '#F8FAFC',
+                success: {
+                  iconTheme: {
+                    primary: '#10B981',
+                    secondary: '#F8FAFC',
+                  },
                 },
-              },
-            }}
-          />
-        </ThemeProvider>
-      </QueryClientProvider>
+                error: {
+                  iconTheme: {
+                    primary: '#EF4444',
+                    secondary: '#F8FAFC',
+                  },
+                },
+              }}
+            />
+          </ThemeProvider>
+        </QueryClientProvider>
+      </NeonAuthProvider>
     </SessionProvider>
   );
 }

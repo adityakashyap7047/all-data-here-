@@ -1,0 +1,20 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "notixcloud"
+main = ".open-next/worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare Pages assets
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+# Environment variables — set these via Cloudflare Dashboard or wrangler secret
+# wrangler secret put DATABASE_URL
+# wrangler secret put AUTH_SECRET
+# etc.
+
+# Uncomment to enable Hyperdrive (connection pooling for Neon/external PostgreSQL)
+# [[hyperdrive]]
+# binding = "HYPERDRIVE"
+# id = "<your-hyperdrive-config-id>"

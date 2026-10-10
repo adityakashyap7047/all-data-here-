@@ -21,7 +21,9 @@ function cleanupMemoryStore(): void {
   }
 }
 
-setInterval(cleanupMemoryStore, 60 * 1000);
+if (typeof window === 'undefined') {
+  setInterval(cleanupMemoryStore, 60 * 1000);
+}
 
 async function getRedisClient() {
   try {

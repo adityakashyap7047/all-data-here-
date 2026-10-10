@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma';
 import { verifyToken, consumeVerificationToken } from '@/lib/auth/utils/tokens';
 import { rateLimit } from '@/lib/auth/utils/rate-limit';
 
+export const dynamic = 'force-dynamic';
+
 const verifyEmailSchema = z.object({
   token: z.string().min(1),
 });

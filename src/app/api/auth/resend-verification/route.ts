@@ -5,6 +5,8 @@ import { sendTemplatedEmail, emailTemplates } from '@/lib/email';
 import { generateVerificationToken } from '@/lib/auth/utils/tokens';
 import { rateLimit } from '@/lib/auth/utils/rate-limit';
 
+export const dynamic = 'force-dynamic';
+
 const resendVerificationSchema = z.object({
   email: z.string().email('Invalid email address'),
 });

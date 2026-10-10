@@ -5,6 +5,8 @@ import { sendTemplatedEmail, emailTemplates } from '@/lib/email';
 import { generatePasswordResetToken } from '@/lib/auth/utils/tokens';
 import { rateLimit } from '@/lib/auth/utils/rate-limit';
 
+export const dynamic = 'force-dynamic';
+
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
