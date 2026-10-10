@@ -1,0 +1,6 @@
+notixcloud-web
+.git
+node_modules
+.next
+.env*
+*.log
