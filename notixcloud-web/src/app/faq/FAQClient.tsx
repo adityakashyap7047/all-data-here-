@@ -6,6 +6,7 @@ import { Container } from '@/components/ui/Container';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { cn } from '@/lib/utils';
 
 interface FAQ {
   id: string;
@@ -136,35 +137,6 @@ export default function FAQClient() {
       </div>
     );
   }
-
-  if (!data) return null;
-
-  const filteredFAQs = data?.faqs.filter((faq) =>
-    faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    faq.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    faq.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  ) || [];
-
-  const groupedFAQs = filteredFAQs.reduce((acc, faq) => {
-    const category = faq.category || 'General';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(faq);
-    return acc;
-  }, {} as Record<string, FAQ[]>);
-
-  const toggleOpen = (id: string) => {
-    setOpenItems((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleVote = (id: string, vote: 'yes' | 'no') => {
-    if (votedItems[id]) return;
-    setVotedItems((prev) => ({ ...prev, [id]: vote }));
-  };
 
   if (!data) return null;
 
