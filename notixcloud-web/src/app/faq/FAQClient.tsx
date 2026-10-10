@@ -325,5 +325,3 @@ function FAQItem({ faq, isOpen, onToggle, voted, onVote }: { faq: FAQ; isOpen: b
     </Card>
   );
 }
-
-import { cn } from '@/lib/utils';
