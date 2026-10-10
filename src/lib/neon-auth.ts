@@ -1,10 +1,20 @@
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
 
-const jwksUrl = process.env.NEON_JWKS_URL!;
 const audience = process.env.NEON_AUTH_AUDIENCE!;
 const issuer = process.env.NEON_AUTH_URL!;
 
-const JWKS = createRemoteJWKSet(new URL(jwksUrl));
+let JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getJWKS() {
+  if (!JWKS) {
+    const jwksUrl = process.env.NEON_JWKS_URL;
+    if (!jwksUrl) {
+      throw new Error('NEON_JWKS_URL environment variable is not set');
+    }
+    JWKS = createRemoteJWKSet(new URL(jwksUrl));
+  }
+  return JWKS;
+}
 
 export interface NeonUser extends JWTPayload {
   sub: string;
@@ -19,7 +29,7 @@ export interface NeonUser extends JWTPayload {
 
 export async function verifyNeonToken(token: string): Promise<NeonUser | null> {
   try {
-    const { payload } = await jwtVerify(token, JWKS, {
+    const { payload } = await jwtVerify(token, getJWKS(), {
       issuer,
       audience,
     });
