@@ -3,7 +3,8 @@
   "services": {
     "app": {
       "root": ".",
-      "framework": "nextjs"
+      "framework": "nextjs",
+      "buildCommand": "npm run db:generate && npm run build"
     },
     "notixcloud-web": {
       "root": "notixcloud-web",
