@@ -17,6 +17,12 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [...config.externals, 'ssh2'];
+    }
+    return config;
+  },
   async headers() {
     return [
       {
