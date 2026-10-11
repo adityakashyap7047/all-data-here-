@@ -255,6 +255,122 @@ model VPSInstance {
   @@index([planId])
 }
 
+enum VPSNodeType {
+  PRODUCTION
+  DEVELOPMENT
+}
+
+enum VPSNodeStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+  UNREACHABLE
+  ERROR
+}
+
+enum VPSNodeAuthType {
+  SSH_KEY
+  AGENT
+}
+
+model VPSNode {
+  id                    String         @id @default(cuid())
+  name                  String
+  hostname              String
+  sshPort               Int            @default(22)
+  sshUsername           String
+  authType              VPSNodeAuthType @default(SSH_KEY)
+  sshPrivateKey         String?        @db.Text
+  sshPublicKey          String?        @db.Text
+  hostKeyFingerprint    String?
+  nodeType              VPSNodeType    @default(PRODUCTION)
+  status                VPSNodeStatus  @default(UNREACHABLE)
+  os                    String?
+  arch                  String?
+  cpuCores              Int?
+  totalRam              Int?
+  totalDisk             Int?
+  availableRam          Int?
+  availableDisk         Int?
+  lastHealthCheck       DateTime?
+  lastConnection        DateTime?
+  connectionError       String?
+  uptimeSeconds         BigInt?
+  javaVersion           String?
+  dockerVersion         String?
+  agentVersion          String?
+  agentToken            String?        @unique
+  agentTokenExpiry      DateTime?
+  maxServers            Int            @default(10)
+  reservedCpu           Int            @default(1)
+  reservedRam           Int            @default(1024)
+  reservedDisk          Int            @default(10240)
+  firewallConfigured    Boolean        @default(false)
+  tlsConfigured         Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  createdBy             String
+  servers               MinecraftServer[]
+  metrics               VPSNodeMetric[]
+  connectionLogs        VPSNodeConnectionLog[]
+  @@index([status])
+  @@index([nodeType])
+  @@index([createdBy])
+}
+
+model MinecraftServer {
+  id                    String         @id @default(cuid())
+  name                  String
+  nodeId                String
+  version               String
+  softwareType          String
+  allocatedCpu          Int
+  allocatedRam          Int
+  allocatedDisk         Int
+  port                  Int
+  status                String         @default("STOPPED")
+  javaArgs              String?
+  serverProperties      Json?
+  worldName             String?
+  maxPlayers            Int            @default(20)
+  motd                  String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  startedAt             DateTime?
+  stoppedAt             DateTime?
+  node                  VPSNode        @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  @@index([nodeId])
+  @@index([status])
+}
+
+model VPSNodeMetric {
+  id                    String         @id @default(cuid())
+  nodeId                String
+  cpuUsage              Float
+  ramUsage              Int
+  diskUsage             Int
+  networkIn             BigInt
+  networkOut            BigInt
+  loadAverage           Float?
+  timestamp             DateTime       @default(now())
+  node                  VPSNode        @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  @@index([nodeId, timestamp])
+}
+
+model VPSNodeConnectionLog {
+  id                    String         @id @default(cuid())
+  nodeId                String
+  eventType             String
+  success               Boolean
+  message               String?
+  details               Json?
+  ipAddress             String?
+  userAgent             String?
+  createdAt             DateTime       @default(now())
+  node                  VPSNode        @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  @@index([nodeId, createdAt])
+}
+
 model VPSBackup {
   id          String       @id @default(cuid())
   instanceId  String

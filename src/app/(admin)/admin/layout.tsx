@@ -27,6 +27,14 @@ import {
   ChevronRight,
   LogOut,
   Shield,
+  Database,
+  Cpu,
+  HardDrive,
+  Network,
+  Key,
+  Check,
+  Terminal,
+  Link2,
 } from 'lucide-react';
 import { auth, signOut } from '@/lib/auth';
 
@@ -48,6 +56,16 @@ const navigation = [
   { name: 'Status', href: '/admin/status', icon: Activity },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
   { name: 'Audit Logs', href: '/admin/audit-logs', icon: History },
+];
+
+const infrastructureNavigation = [
+  { name: 'VPS Overview', href: '/admin/infrastructure/overview', icon: Server },
+  { name: 'Add VPS', href: '/admin/infrastructure/add', icon: Link2 },
+  { name: 'Connected Nodes', href: '/admin/infrastructure/nodes', icon: Database },
+  { name: 'Node Resources', href: '/admin/infrastructure/resources', icon: Cpu },
+  { name: 'Server Deployments', href: '/admin/infrastructure/deployments', icon: HardDrive },
+  { name: 'Connection Logs', href: '/admin/infrastructure/logs', icon: Terminal },
+  { name: 'Security Settings', href: '/admin/infrastructure/security', icon: Check },
 ];
 
 export default function AdminLayout({
@@ -84,28 +102,60 @@ export default function AdminLayout({
           </Button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1" aria-label="Admin navigation">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200',
-                  'text-sm font-medium',
-                  isActive
-                    ? 'bg-notix-accent/10 text-notix-accent'
-                    : 'text-notix-textMuted hover:text-notix-text hover:bg-white/5',
-                  collapsed && 'justify-center px-2'
-                )}
-                title={collapsed ? item.name : undefined}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-                {!collapsed && <span>{item.name}</span>}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4" aria-label="Admin navigation">
+          <div>
+            <h3 className={cn('text-xs font-semibold text-notix-textMuted uppercase tracking-wider px-3 mb-2', collapsed && 'hidden')}>
+              Core
+            </h3>
+            {navigation.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200',
+                    'text-sm font-medium',
+                    isActive
+                      ? 'bg-notix-accent/10 text-notix-accent'
+                      : 'text-notix-textMuted hover:text-notix-text hover:bg-white/5',
+                    collapsed && 'justify-center px-2'
+                  )}
+                  title={collapsed ? item.name : undefined}
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                  {!collapsed && <span>{item.name}</span>}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div>
+            <h3 className={cn('text-xs font-semibold text-notix-textMuted uppercase tracking-wider px-3 mb-2', collapsed && 'hidden')}>
+              Infrastructure
+            </h3>
+            {infrastructureNavigation.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200',
+                    'text-sm font-medium',
+                    isActive
+                      ? 'bg-notix-accent/10 text-notix-accent'
+                      : 'text-notix-textMuted hover:text-notix-text hover:bg-white/5',
+                    collapsed && 'justify-center px-2'
+                  )}
+                  title={collapsed ? item.name : undefined}
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                  {!collapsed && <span>{item.name}</span>}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
         <div className="p-3 border-t border-white/10">
@@ -134,7 +184,10 @@ export default function AdminLayout({
         <header className="sticky top-0 z-30 h-16 bg-notix-surface/80 backdrop-blur-md border-b border-white/5">
           <div className="flex h-full items-center justify-between px-6">
             <h1 className="text-xl font-semibold text-notix-text">
-              {navigation.find((item) => pathname === item.href || pathname.startsWith(item.href + '/'))?.name || 'Admin Panel'}
+              {
+                [...navigation, ...infrastructureNavigation].find((item) => pathname === item.href || pathname.startsWith(item.href + '/'))?.name
+                || 'Admin Panel'
+              }
             </h1>
             <div className="flex items-center gap-4">
               <span className="text-sm text-notix-textMuted hidden sm:block">Admin Panel</span>
