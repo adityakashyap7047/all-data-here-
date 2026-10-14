@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { validateSortField, validateOrder } from '@/lib/utils/security';
+import { encryptPrivateKey, validatePrivateKeyFormat } from '@/lib/ssh/encryption';
 
 const nodeQuerySchema = z.object({
   page: z.coerce.number().positive().default(1),
@@ -104,6 +105,17 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate SSH private key format before encryption
+    if (data.sshPrivateKey) {
+      const keyValidation = validatePrivateKeyFormat(data.sshPrivateKey);
+      if (!keyValidation.valid) {
+        return NextResponse.json(
+          { error: { code: 'VALIDATION_ERROR', message: keyValidation.error } },
+          { status: 400 }
+        );
+      }
+    }
+
     const existingNode = await prisma.vPSNode.findFirst({
       where: { hostname: data.hostname, sshPort: data.sshPort },
     });
@@ -122,7 +134,7 @@ export async function POST(request: Request) {
         sshPort: data.sshPort,
         sshUsername: data.sshUsername,
         authType: data.authType,
-        sshPrivateKey: data.sshPrivateKey ? encryptPrivateKey(data.sshPrivateKey) : null,
+        sshPrivateKey: data.sshPrivateKey ? await encryptPrivateKey(data.sshPrivateKey, process.env.SSH_MASTER_KEY || 'default-master-key-change-in-production') : null,
         sshPublicKey: data.sshPublicKey || null,
         hostKeyFingerprint: data.hostKeyFingerprint || null,
         nodeType: data.nodeType,
@@ -166,8 +178,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-function encryptPrivateKey(key: string): string {
-  return `enc:${Buffer.from(key).toString('base64')}`;
 }

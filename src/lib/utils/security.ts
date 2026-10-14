@@ -67,8 +67,8 @@ export function sanitizeHtml(input: string): string {
     .replace(/&/g, '&')
     .replace(/</g, '<')
     .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/'/g, `'`)
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
     .replace(/\//g, '&#x2F;');
 }
 

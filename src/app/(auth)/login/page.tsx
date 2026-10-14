@@ -175,7 +175,7 @@ function LoginContent() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} method="POST" action="#" className="space-y-5">
               <div>
                 <Label htmlFor="email" className="text-xs font-bold text-white/60 uppercase tracking-wider">
                   Email

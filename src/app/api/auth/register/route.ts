@@ -5,14 +5,14 @@ import prisma from '@/lib/prisma';
 import { sendTemplatedEmail, emailTemplates } from '@/lib/email';
 import { generateVerificationToken } from '@/lib/auth/utils/tokens';
 import { rateLimit } from '@/lib/auth/utils/rate-limit';
-import { validatePasswordStrength } from '@/lib/utils/security';
+import { validatePasswordStrength, passwordRequirements } from '@/lib/utils/security';
 
 export const dynamic = 'force-dynamic';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string().min(passwordRequirements.minLength, `Password must be at least ${passwordRequirements.minLength} characters`),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',

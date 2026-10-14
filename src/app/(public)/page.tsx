@@ -6,22 +6,39 @@ import { Server, Shield, Zap, Globe, Database, Lock, ArrowRight, CheckCircle, Ch
 import { Marquee, MarqueeItem, SplitText, StaggeredGrid, Magnetic } from '@/components/animations';
 
 /* ─── Intersection Observer hook for scroll reveals ─── */
-function useScrollReveal() {
+function useScrollReveal(defaultVisible = false) {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(defaultVisible);
 
   useEffect(() => {
+    if (defaultVisible) {
+      setIsVisible(true);
+      return;
+    }
+    const element = ref.current;
+    if (!element) return;
+
+    const checkInitialVisibility = () => {
+      const rect = element.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const isInViewport = rect.top < viewportHeight && rect.bottom > 0;
+      if (isInViewport) setIsVisible(true);
+    };
+
+    checkInitialVisibility();
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+          observer.disconnect();
         }
       },
-      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px 50px 0px' }
     );
-    if (ref.current) observer.observe(ref.current);
+    observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [defaultVisible]);
 
   return { ref, isVisible };
 }
@@ -141,7 +158,7 @@ const features = [
 ];
 
 export default function LandingPage() {
-  const hero = useScrollReveal();
+  const hero = useScrollReveal(true);
   const chapter1 = useScrollReveal();
   const chapter2 = useScrollReveal();
   const chapter3 = useScrollReveal();
@@ -174,8 +191,8 @@ export default function LandingPage() {
 
         <div
           ref={hero.ref}
-          className={`relative z-10 text-center max-w-5xl mx-auto px-4 transition-all duration-[1.5s] ease-out ${
-            hero.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
+          className={`relative z-10 text-center max-w-5xl mx-auto px-4 transition-all duration-1000 ease-out ${
+            hero.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}
         >
           {/* Badge */}

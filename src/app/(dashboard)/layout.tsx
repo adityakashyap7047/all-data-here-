@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { 
   LayoutDashboard, Server, CreditCard, ShoppingBag, 
   MessageSquare, Bell, Settings, LogOut, Menu, X, 
@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
@@ -31,16 +30,27 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const user = session?.user;
+  const userName = user?.name || (user?.email ? user.email.split('@')[0] : 'Admin User');
+  const userEmail = user?.email || 'admin@notixcloud.com';
+  const userInitial = (userName?.[0] || 'A').toUpperCase();
+  const isAdmin = (user as any)?.role === 'SUPER_ADMIN' || (user as any)?.role === 'ADMIN';
 
   return (
-    <div className="min-h-screen bg-notix-bg">
+    <div className="min-h-screen bg-black text-white">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/80 lg:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -48,21 +58,23 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside className={cn(
-        'fixed inset-y-0 left-0 z-50 w-64 bg-notix-surface border-r border-white/5 transform transition-transform duration-300 lg:translate-x-0',
+        'fixed inset-y-0 left-0 z-50 w-64 bg-[#0a0a0c] border-r border-white/[0.08] transform transition-transform duration-300 lg:translate-x-0',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-between px-4 border-b border-white/5">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-notix-accent to-blue-500 flex items-center justify-center">
-                <Server className="w-6 h-6 text-notix-bg" />
+          <div className="flex h-16 items-center justify-between px-6 border-b border-white/[0.08]">
+            <Link href="/dashboard" className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center shadow-lg shadow-red-600/30">
+                <Server className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-notix-text">NOTIXCLOUD</span>
+              <span className="text-lg font-black tracking-tight text-white">
+                NOTIX<span className="text-red-500">CLOUD</span>
+              </span>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 text-notix-textMuted hover:text-notix-text"
+              className="lg:hidden p-2 text-white/50 hover:text-white"
               aria-label="Close sidebar"
             >
               <X className="w-5 h-5" />
@@ -70,22 +82,22 @@ export default function DashboardLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto" aria-label="Main navigation">
+          <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto" aria-label="Main navigation">
             {navigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
+                    'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all',
                     isActive
-                      ? 'bg-notix-accent/10 text-notix-accent border border-notix-accent/20'
-                      : 'text-notix-textMuted hover:text-notix-text hover:bg-white/5'
+                      ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                      : 'text-white/50 hover:text-white hover:bg-white/[0.04]'
                   )}
                   aria-current={isActive ? 'page' : undefined}
                 >
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <item.icon className="w-4 h-4 flex-shrink-0" />
                   {item.name}
                 </Link>
               );
@@ -93,15 +105,14 @@ export default function DashboardLayout({
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-white/5">
-            <div className="flex items-center gap-3 px-3 py-2">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src="/avatar.png" alt="User" />
-                <AvatarFallback className="text-notix-accent font-medium">U</AvatarFallback>
-              </Avatar>
+          <div className="p-4 border-t border-white/[0.08]">
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-10 h-10 rounded-xl bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 font-bold text-base flex-shrink-0">
+                {userInitial}
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-notix-text truncate">User Name</p>
-                <p className="text-xs text-notix-textMuted truncate">user@example.com</p>
+                <p className="text-sm font-bold text-white truncate">{userName}</p>
+                <p className="text-xs text-white/40 truncate">{userEmail}</p>
               </div>
             </div>
           </div>
@@ -111,18 +122,18 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 bg-notix-bg/95 backdrop-blur-lg border-b border-white/5">
-          <div className="flex h-full items-center justify-between px-4 sm:px-6">
+        <header className="sticky top-0 z-30 h-16 bg-black/90 backdrop-blur-xl border-b border-white/[0.08]">
+          <div className="flex h-full items-center justify-between px-4 sm:px-8">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-lg text-notix-textMuted hover:text-notix-text hover:bg-white/5"
+                className="lg:hidden p-2 rounded-lg text-white/50 hover:text-white hover:bg-white/5"
                 aria-label="Open sidebar"
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <h1 className="text-xl font-bold text-notix-text hidden sm:block">
-                {navigation.find(n => pathname === n.href || pathname.startsWith(n.href + '/'))?.name || 'Dashboard'}
+              <h1 className="text-lg font-black tracking-tight text-white hidden sm:block">
+                {navigation.find(n => pathname === n.href || (n.href !== '/dashboard' && pathname.startsWith(n.href)))?.name || 'Dashboard'}
               </h1>
             </div>
 
@@ -130,58 +141,69 @@ export default function DashboardLayout({
               {/* Theme toggle */}
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="p-2 rounded-lg text-notix-textMuted hover:text-notix-text hover:bg-white/5 transition-colors"
+                className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/5 transition-colors"
                 aria-label="Toggle theme"
               >
-                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {mounted && theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </button>
 
               {/* Notifications */}
-              <button className="relative p-2 rounded-lg text-notix-textMuted hover:text-notix-text hover:bg-white/5">
+              <Link
+                href="/dashboard/notifications"
+                className="relative p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+                title="Notifications"
+              >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-notix-accent rounded-full" />
-              </button>
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+              </Link>
 
               {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 p-1 rounded-lg hover:bg-white/5">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src="/avatar.png" alt="User" />
-                      <AvatarFallback className="text-notix-accent font-medium">U</AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:block text-sm font-medium text-notix-text">User Name</span>
-                    <ChevronDown className="w-4 h-4 text-notix-textMuted" />
+                  <button className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/10">
+                    <div className="w-8 h-8 rounded-lg bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 font-bold text-sm">
+                      {userInitial}
+                    </div>
+                    <span className="hidden sm:block text-sm font-bold text-white">{userName}</span>
+                    <ChevronDown className="w-4 h-4 text-white/40" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-notix-surface border border-white/10">
-                  <div className="px-2 py-1">
-                    <p className="text-sm font-medium text-notix-text">User Name</p>
-                    <p className="text-xs text-notix-textMuted">user@example.com</p>
+                <DropdownMenuContent align="end" className="w-60 bg-[#121216] border border-white/10 p-2 rounded-xl shadow-2xl">
+                  <div className="px-3 py-2 border-b border-white/10 mb-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-bold text-white truncate">{userName}</p>
+                      {isAdmin && (
+                        <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-red-600/20 text-red-400 border border-red-600/30 font-bold">
+                          Admin
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-white/40 truncate mt-0.5">{userEmail}</p>
                   </div>
-                  <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 font-semibold hover:bg-red-600/10 rounded-lg cursor-pointer">
+                        <Server className="w-4 h-4" />
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings" className="flex items-center gap-2" onClick={() => setUserMenuOpen(false)}>
+                    <Link href="/dashboard/settings" className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer">
                       <User className="w-4 h-4" />
-                      Profile
+                      Account Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings#security" className="flex items-center gap-2" onClick={() => setUserMenuOpen(false)}>
-                      <Shield className="w-4 h-4" />
-                      Security
+                    <Link href="/dashboard/billing" className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer">
+                      <CreditCard className="w-4 h-4" />
+                      Billing & Invoices
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings#api" className="flex items-center gap-2" onClick={() => setUserMenuOpen(false)}>
-                      <Key className="w-4 h-4" />
-                      API Keys
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-white/10 my-1" />
                   <DropdownMenuItem 
-                    className="text-red-400 focus:text-red-400"
-                    onClick={() => signOut({ callbackUrl: '/' })}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-600/10 rounded-lg cursor-pointer font-medium"
+                    onClick={() => signOut({ callbackUrl: '/login' })}
                   >
                     <LogOut className="w-4 h-4" />
                     Sign Out

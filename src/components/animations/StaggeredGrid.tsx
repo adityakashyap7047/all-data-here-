@@ -28,7 +28,25 @@ export function StaggeredGrid({
   const [visibleItems, setVisibleItems] = useState<number[]>([]);
 
   useEffect(() => {
-    const childNodes = Array.from(containerRef.current?.children || []);
+    const container = containerRef.current;
+    if (!container) return;
+
+    const childNodes = Array.from(container.children);
+
+    const checkInitialVisibility = () => {
+      const rect = container.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const isInViewport = rect.top < viewportHeight && rect.bottom > 0;
+      if (isInViewport) {
+        childNodes.forEach((_, index) => {
+          setTimeout(() => {
+            setVisibleItems((prev) => [...prev, index]);
+          }, index * staggerDelay);
+        });
+      }
+    };
+
+    checkInitialVisibility();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -44,7 +62,7 @@ export function StaggeredGrid({
       { threshold, rootMargin }
     );
 
-    if (containerRef.current) observer.observe(containerRef.current);
+    observer.observe(container);
     return () => observer.disconnect();
   }, [staggerDelay, threshold, rootMargin]);
 
@@ -140,7 +158,25 @@ export function StaggeredList({
   const [visibleItems, setVisibleItems] = useState<number[]>([]);
 
   useEffect(() => {
-    const childNodes = Array.from(containerRef.current?.children || []);
+    const container = containerRef.current;
+    if (!container) return;
+
+    const childNodes = Array.from(container.children);
+
+    const checkInitialVisibility = () => {
+      const rect = container.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const isInViewport = rect.top < viewportHeight && rect.bottom > 0;
+      if (isInViewport) {
+        childNodes.forEach((_, index) => {
+          setTimeout(() => {
+            setVisibleItems((prev) => [...prev, index]);
+          }, index * staggerDelay);
+        });
+      }
+    };
+
+    checkInitialVisibility();
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -156,7 +192,7 @@ export function StaggeredList({
       { threshold, rootMargin }
     );
 
-    if (containerRef.current) observer.observe(containerRef.current);
+    observer.observe(container);
     return () => observer.disconnect();
   }, [staggerDelay, threshold, rootMargin]);
 

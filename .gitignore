@@ -53,3 +53,4 @@ docker/certs/
 # Logs
 logs
 *.log
+.vercel

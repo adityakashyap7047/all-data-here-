@@ -26,17 +26,48 @@ export function Marquee({
   const animationRef = useRef<number>();
 
   useEffect(() => {
-    if (contentRef.current) {
-      setContentWidth(contentRef.current.scrollWidth);
-    }
+    const updateWidth = () => {
+      if (contentRef.current) {
+        const originalItems = Array.from(contentRef.current.children).filter(
+          (el) => !el.hasAttribute('data-marquee-clone')
+        );
+        let width = 0;
+        originalItems.forEach((item) => {
+          width += (item as HTMLElement).offsetWidth + 32;
+        });
+        setContentWidth(width > 0 ? width : contentRef.current.scrollWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
   useEffect(() => {
-    if (!containerRef.current || !contentRef.current) return;
+    if (!containerRef.current || !contentRef.current || !contentWidth || contentWidth <= 0) return;
 
     const container = containerRef.current;
     const content = contentRef.current;
-    const cloneCount = Math.ceil(container.offsetWidth / contentWidth) + 2;
+    const rawClones = Math.ceil(container.offsetWidth / contentWidth);
+    const cloneCount = Math.max(1, Math.min(isNaN(rawClones) ? 2 : rawClones, 5));
+
+    // Remove any previously appended clones
+    const existingClones = content.querySelectorAll('[data-marquee-clone="true"]');
+    existingClones.forEach((el) => el.remove());
+
+    const originalChildren = Array.from(content.children).filter(
+      (el) => !el.hasAttribute('data-marquee-clone')
+    );
+
+    for (let i = 0; i < cloneCount; i++) {
+      originalChildren.forEach((child) => {
+        const clone = child.cloneNode(true) as HTMLElement;
+        clone.setAttribute('aria-hidden', 'true');
+        clone.setAttribute('data-marquee-clone', 'true');
+        content.appendChild(clone);
+      });
+    }
 
     let position = direction === 'left' ? 0 : -contentWidth * cloneCount;
     let lastTime = performance.now();
@@ -53,13 +84,13 @@ export function Marquee({
 
       if (direction === 'left') {
         position -= distance;
-        if (position <= -contentWidth * repeat) {
-          position += contentWidth * repeat;
+        if (position <= -contentWidth) {
+          position += contentWidth;
         }
       } else {
         position += distance;
         if (position >= 0) {
-          position -= contentWidth * repeat;
+          position -= contentWidth;
         }
       }
 
@@ -71,19 +102,12 @@ export function Marquee({
     content.style.display = 'flex';
     content.style.width = 'max-content';
 
-    const originalChildren = Array.from(content.children);
-    for (let i = 0; i < cloneCount; i++) {
-      originalChildren.forEach((child) => {
-        const clone = child.cloneNode(true) as HTMLElement;
-        clone.setAttribute('aria-hidden', 'true');
-        content.appendChild(clone);
-      });
-    }
-
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      const clones = content.querySelectorAll('[data-marquee-clone="true"]');
+      clones.forEach((el) => el.remove());
     };
   }, [speed, direction, pauseOnHover, repeat, contentWidth, animationPaused]);
 

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { passwordRequirements, validatePasswordStrength } from '@/lib/utils/security';
 
-const passwordSchema = z.string().min(8, 'Password must be at least 8 characters')
+const passwordSchema = z.string().min(passwordRequirements.minLength, `Password must be at least ${passwordRequirements.minLength} characters`)
   .refine(
     (password) => {
       const result = validatePasswordStrength(password);

@@ -26,10 +26,10 @@ function SplitText({
   duration = 0.8,
   delay = 0,
   stagger = 0.05,
-  threshold = 0.1,
-  rootMargin = '0px 0px -50px 0px',
+  threshold = 0.05,
+  rootMargin = '0px 0px 50px 0px',
   className = '',
-  as: Component = 'p',
+  as: Component = 'span',
   onComplete,
 }: SplitTextProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -40,6 +40,21 @@ function SplitText({
   const text = typeof children === 'string' ? children : String(children);
 
   useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const checkInitialVisibility = () => {
+      const rect = element.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const isInViewport = rect.top < viewportHeight && rect.bottom > 0;
+      if (isInViewport) {
+        setHasAnimated(true);
+        setTimeout(() => setIsVisible(true), delay * 1000);
+      }
+    };
+
+    checkInitialVisibility();
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !hasAnimated) {
@@ -50,7 +65,7 @@ function SplitText({
       { threshold, rootMargin }
     );
 
-    if (ref.current) observer.observe(ref.current);
+    observer.observe(element);
     return () => observer.disconnect();
   }, [delay, threshold, rootMargin, hasAnimated]);
 

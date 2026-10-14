@@ -14,13 +14,13 @@ const updateVpsSchema = z.object({
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const { user, error } = await requirePermission('vps:read');
   if (error) return error;
 
   try {
-    const { id } = await params;
+    const { id } = params;
 
     const instance = await prisma.vPSInstance.findUnique({
       where: { id },
@@ -59,13 +59,13 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   const { user, error } = await requirePermission('vps:write');
   if (error) return error;
 
   try {
-    const { id } = await params;
+    const { id } = params;
     const body = await request.json();
     const data = updateVpsSchema.parse(body);
 

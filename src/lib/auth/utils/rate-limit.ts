@@ -21,7 +21,8 @@ function cleanupMemoryStore(): void {
   }
 }
 
-if (typeof window === 'undefined') {
+// Only run cleanup interval on server side
+if (typeof window === 'undefined' && typeof process !== 'undefined') {
   setInterval(cleanupMemoryStore, 60 * 1000);
 }
 
